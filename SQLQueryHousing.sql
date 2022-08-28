@@ -3,112 +3,111 @@ From Portfolio.dbo.NashvilleHousing
 
 --------------------------------------------------------------------------------------------------------------------------
 
--- Приведём дату в единый формат. 
+-- РџСЂРёРІРµРґС‘Рј РґР°С‚Сѓ РІ РµРґРёРЅС‹Р№ С„РѕСЂРјР°С‚. 
 
 ALTER TABLE NashvilleHousing
 Add SaleDateConverted Date;
 
-Update NashvilleHousing
+UPDATE NashvilleHousing
 SET SaleDateConverted = CONVERT(Date,SaleDate);
 
-Select SaleDateConverted
-From Portfolio.dbo.NashvilleHousing;
+SELECT SaleDateConverted
+FROM Portfolio.dbo.NashvilleHousing;
 
 
  --------------------------------------------------------------------------------------------------------------------------
 
--- Избавимся от пустых значений в поле адрес, проведя оценку данных.  
+-- РР·Р±Р°РІРёРјСЃСЏ РѕС‚ РїСѓСЃС‚С‹С… Р·РЅР°С‡РµРЅРёР№ РІ РїРѕР»Рµ Р°РґСЂРµСЃ, РїСЂРѕРІРµРґСЏ РѕС†РµРЅРєСѓ РґР°РЅРЅС‹С….  
 
-Select *
-From Portfolio.dbo.NashvilleHousing
-order by ParcelID;
+SELECT *
+FROM Portfolio.dbo.NashvilleHousing
+ORDER BY ParcelID;
 
--- В таблице можно заметить повторяющиеся значения ParcelID, имеющие так же одинаковый PropertyAdress. Воспользуемся им для заполнения пропусков.  
+-- Р’ С‚Р°Р±Р»РёС†Рµ РјРѕР¶РЅРѕ Р·Р°РјРµС‚РёС‚СЊ РїРѕРІС‚РѕСЂСЏСЋС‰РёРµСЃСЏ Р·РЅР°С‡РµРЅРёСЏ ParcelID, РёРјРµСЋС‰РёРµ С‚Р°Рє Р¶Рµ РѕРґРёРЅР°РєРѕРІС‹Р№ PropertyAdress. Р’РѕСЃРїРѕР»СЊР·СѓРµРјСЃСЏ РёРј РґР»СЏ Р·Р°РїРѕР»РЅРµРЅРёСЏ РїСЂРѕРїСѓСЃРєРѕРІ.   
 
 
 
-Select a.ParcelID, a.PropertyAddress, b.ParcelID, b.PropertyAddress, ISNULL(a.PropertyAddress,b.PropertyAddress)
-From Portfolio.dbo.NashvilleHousing a
+SELECT a.ParcelID, a.PropertyAddress, b.ParcelID, b.PropertyAddress, ISNULL(a.PropertyAddress,b.PropertyAddress)
+FROM Portfolio.dbo.NashvilleHousing a
 JOIN Portfolio.dbo.NashvilleHousing b
-	on a.ParcelID = b.ParcelID
+	ON a.ParcelID = b.ParcelID
 	AND a.[UniqueID ] <> b.[UniqueID ]
-Where a.PropertyAddress is null
+WHERE a.PropertyAddress is null
 
 
 Update a
 SET PropertyAddress = ISNULL(a.PropertyAddress,b.PropertyAddress)
-From Portfolio.dbo.NashvilleHousing a
+FROM Portfolio.dbo.NashvilleHousing a
 JOIN Portfolio.dbo.NashvilleHousing b
-	on a.ParcelID = b.ParcelID
+	ON a.ParcelID = b.ParcelID
 	AND a.[UniqueID ] <> b.[UniqueID ]
-Where a.PropertyAddress is null
+WHERE a.PropertyAddress IS null
 
 
 
 
 --------------------------------------------------------------------------------------------------------------------------
 
--- Разобьём адрес на разные колонки: адрес, Город, Штат
+-- Р Р°Р·РѕР±СЊС‘Рј Р°РґСЂРµСЃ РЅР° СЂР°Р·РЅС‹Рµ РєРѕР»РѕРЅРєРё: Р°РґСЂРµСЃ, Р“РѕСЂРѕРґ, РЁС‚Р°С‚
 
 
-Select PropertyAddress
-From Portfolio.dbo.NashvilleHousing
---Where PropertyAddress is null
---order by ParcelID
+SELECT PropertyAddress
+FROM Portfolio.dbo.NashvilleHousing
+
 
 SELECT
 SUBSTRING(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) -1 ) as Address
 , SUBSTRING(PropertyAddress, CHARINDEX(',', PropertyAddress) + 1 , LEN(PropertyAddress)) as Address
 
-From Portfolio.dbo.NashvilleHousing
+FROM Portfolio.dbo.NashvilleHousing
 
 
 ALTER TABLE NashvilleHousing
 Add PropertySplitAddress Nvarchar(255);
 
-Update NashvilleHousing
+UPDATE NashvilleHousing
 SET PropertySplitAddress = SUBSTRING(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) -1 )
 
 
 ALTER TABLE NashvilleHousing
 Add PropertySplitCity Nvarchar(255);
 
-Update NashvilleHousing
+UPDATE NashvilleHousing
 SET PropertySplitCity = SUBSTRING(PropertyAddress, CHARINDEX(',', PropertyAddress) + 1 , LEN(PropertyAddress))
 
 
 
 
-Select *
-From Portfolio.dbo.NashvilleHousing
+SELECT *
+FROM Portfolio.dbo.NashvilleHousing
 
 
 
 
 
-Select OwnerAddress
-From Portfolio.dbo.NashvilleHousing
+SELECT OwnerAddress
+FROM Portfolio.dbo.NashvilleHousing
 
 
-Select
+SELECT
 PARSENAME(REPLACE(OwnerAddress, ',', '.') , 3)
 ,PARSENAME(REPLACE(OwnerAddress, ',', '.') , 2)
 ,PARSENAME(REPLACE(OwnerAddress, ',', '.') , 1)
-From Portfolio.dbo.NashvilleHousing
+FROM Portfolio.dbo.NashvilleHousing
 
 
 
 ALTER TABLE NashvilleHousing
 Add OwnerSplitAddress Nvarchar(255);
 
-Update NashvilleHousing
+UPDATE NashvilleHousing
 SET OwnerSplitAddress = PARSENAME(REPLACE(OwnerAddress, ',', '.') , 3)
 
 
 ALTER TABLE NashvilleHousing
 Add OwnerSplitCity Nvarchar(255);
 
-Update NashvilleHousing
+UPDATE NashvilleHousing
 SET OwnerSplitCity = PARSENAME(REPLACE(OwnerAddress, ',', '.') , 2)
 
 
@@ -116,13 +115,13 @@ SET OwnerSplitCity = PARSENAME(REPLACE(OwnerAddress, ',', '.') , 2)
 ALTER TABLE NashvilleHousing
 Add OwnerSplitState Nvarchar(255);
 
-Update NashvilleHousing
+UPDATE NashvilleHousing
 SET OwnerSplitState = PARSENAME(REPLACE(OwnerAddress, ',', '.') , 1)
 
 
 
-Select *
-From Portfolio.dbo.NashvilleHousing
+SELECT *
+FROM Portfolio.dbo.NashvilleHousing
 
 
 
@@ -130,26 +129,26 @@ From Portfolio.dbo.NashvilleHousing
 --------------------------------------------------------------------------------------------------------------------------
 
 
--- Заменим Y и N на Yes и No в  колонке "Sold as Vacant" 
+-- Р—Р°РјРµРЅРёРј Y Рё N РЅР° Yes Рё No РІ  РєРѕР»РѕРЅРєРµ "Sold as Vacant"  
 
 
-Select Distinct(SoldAsVacant), Count(SoldAsVacant)
-From Portfolio.dbo.NashvilleHousing
-Group by SoldAsVacant
-order by 2
+SELECT Distinct(SoldAsVacant), COUNT(SoldAsVacant)
+FROM Portfolio.dbo.NashvilleHousing
+GROUP BY SoldAsVacant
+ORDER BY 2
 
 
 
 
-Select SoldAsVacant
+SELECT SoldAsVacant
 , CASE When SoldAsVacant = 'Y' THEN 'Yes'
 	   When SoldAsVacant = 'N' THEN 'No'
 	   ELSE SoldAsVacant
 	   END
-From Portfolio.dbo.NashvilleHousing
+FROM Portfolio.dbo.NashvilleHousing
 
 
-Update NashvilleHousing
+UPDATE NashvilleHousing
 SET SoldAsVacant = CASE When SoldAsVacant = 'Y' THEN 'Yes'
 	   When SoldAsVacant = 'N' THEN 'No'
 	   ELSE SoldAsVacant
@@ -162,10 +161,10 @@ SET SoldAsVacant = CASE When SoldAsVacant = 'Y' THEN 'Yes'
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
--- Удалим дубликаты
+-- РЈРґР°Р»РёРј РґСѓР±Р»РёРєР°С‚С‹
 
 WITH RowNumCTE AS(
-Select *,
+SELECT *,
 	ROW_NUMBER() OVER (
 	PARTITION BY ParcelID,
 				 PropertyAddress,
@@ -176,30 +175,29 @@ Select *,
 					UniqueID
 					) row_num
 
-From Portfolio.dbo.NashvilleHousing
---order by ParcelID
+FROM Portfolio.dbo.NashvilleHousing
 )
-Select *
-From RowNumCTE
-Where row_num > 1
-Order by PropertyAddress
+SELECT *
+FROM RowNumCTE
+WHERE row_num > 1
+ORDER BY PropertyAddress
 
 
 
-Select *
-From Portfolio.dbo.NashvilleHousing
+SELECT *
+FROM Portfolio.dbo.NashvilleHousing
 
 
 
 
 ---------------------------------------------------------------------------------------------------------
 
--- Удалим неиспользуемые колонки
+-- РЈРґР°Р»РёРј РЅРµРёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ РєРѕР»РѕРЅРєРё
 
 
 
-Select *
-From Portfolio.dbo.NashvilleHousing
+SELECT *
+FROM Portfolio.dbo.NashvilleHousing
 
 
 ALTER TABLE Portfolio.dbo.NashvilleHousing
